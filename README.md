@@ -1,2 +1,4 @@
 # rainpy
-my package for my works
+
+For the Scientific Research to test problems.
+
