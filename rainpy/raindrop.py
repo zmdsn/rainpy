@@ -35,7 +35,7 @@ with open('LICENSE') as f:
 setup(
     name='{name}',
     version='0.1.0',
-    description='Sample package for Python-Guide.org',
+    description='Sample package',
     long_description=readme,
     author='{author}',
     author_email='{email}',
