@@ -102,6 +102,7 @@ make_require = "pipreqs ./ --encoding UTF8 --force --use-local --ignore .venv"
 gitignore_list = """
 .coverage
 reports/
+*.pyc
 """
 
 def make_foleder(path):
