@@ -157,11 +157,11 @@ def make_req():
     make_file(file_path, make_require)
 
 
-def make_req():
+def make_req(args):
     file_path = os.path.join(args.floder, "test.sh")
     make_file(file_path, test_sh)
 
-def make_ignore():
+def make_ignore(args):
     file_path = os.path.join(args.floder, ".gitignore")
     make_file(file_path, test_sh)
 
@@ -177,8 +177,8 @@ def make_frame(args):
     make_setup(args)
     make_read_me(args)
     make_tests_init(args)
-    make_req()
-    make_ignore()
+    make_req(args)
+    make_ignore(args)
     
     for file in [".gitignore", "requirements.txt", "lab.ipynb"]:
         file_path = os.path.join(folder, file)

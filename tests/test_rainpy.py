@@ -11,4 +11,3 @@ def test_raindrop():
                 "url":"https://github.com/zmdsn/rainpy"}
     RainDrop = namedtuple("RainDrop", drops.keys())
     drop = RainDrop(**drops)
-    drop
