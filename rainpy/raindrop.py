@@ -195,13 +195,57 @@ def make_test_exm(args):
     make_file(file_path, test_example_content)
 
 
+class make_web:
+    run_py = """
+from app import create_app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)
+"""
+    blue_print = """
+from flask import Blueprint
+
+bp = Blueprint('main', __name__)
+
+@bp.route('/')
+def home():
+    return 'Hello, World!'
+"""
+    app = """
+from flask import Flask
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object('config.Config')
+
+    from . import routes
+    app.register_blueprint(routes.bp)
+
+    return app"""
+    def __init__(self, name) -> None:
+        self.name = name
+    
+
+    def make_web(self):
+        pass
+
+def make_folders(folder, sub_forlders, folder_lists):
+    for sub_folder in folder_lists:
+        sub_path = os.path.join(folder, sub_forlders, sub_folder)
+        make_foleder(sub_path)
+
+
+def make_files(folder, sub_forlders, file_lists, content=""):
+    for file in file_lists:
+        file_path = os.path.join(folder, sub_forlders, file)
+        make_file(file_path, content)
+
 def make_frame(args):
     folder = args.floder
     make_foleder(folder)
-    for sub_folder in [".venv", "doc", "tests", args.name]:
-        sub_path = os.path.join(folder, sub_folder)
-        make_foleder(sub_path)
-
+    make_folders(folder, "", [".venv", "doc", "tests", args.name])
     make_license(args)
     make_setup(args)
     make_read_me(args)
@@ -211,16 +255,24 @@ def make_frame(args):
     make_ignore(args)
     make_test_exm(args)
 
-    for file in ["requirements.txt", "lab.ipynb"]:
-        file_path = os.path.join(folder, file)
-        make_file(file_path, "")
-
-    for file in ["__init__.py", "core.py", "utils.py"]:
-        file_path = os.path.join(folder, args.name, file)
-        make_file(file_path, "")
+    make_files(folder, "", ["requirements.txt", "lab.ipynb"])
+    make_files(folder, args.name, ["__init__.py", "utils.py"])
+    make_files(folder, sub_forlders="", file_lists=["__init__.py", "utils.py"])
 
     make_start(args)
 
+    if args.web:
+        web_maker = make_web(args.web)
+        make_folders(folder, args.name, ["routes", "models", "templates", "static"])
+        make_files(folder, "", ["config.py"])
+        make_files(folder, "", ["run.py"], web_maker.run_py)
+        make_files(folder, args.name, ["__init__.py"], web_maker.app)
+
+        make_files(folder, f"{args.name}/routes", ["__init__.py"])
+        make_files(folder, f"{args.name}/routes", ["main.py"], web_maker.blue_print)
+        make_files(folder, f"{args.name}/templates", ["__init__.py"])
+        make_files(folder, f"{args.name}/models", ["__init__.py"])
+        web_maker.make_web()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='argparse testing')
@@ -234,9 +286,11 @@ if __name__ == "__main__":
                         required=True, default="zmdsn@126.com",  help='your email')
     parser.add_argument('--url', '-u', type=str,
                         default="", help='the url in git')
+    parser.add_argument('--web', '-w', type=str,
+                        default="", help='falsk/faskapi')
     args = parser.parse_args()
     make_frame(args)
 
 
 # export PATH=$PATH:xx
-# raindrop.py --name ss --floder  -a zmdsn -e zmdsn@126.com
+# raindrop.py --name app --floder example -a zmdsn -e zmdsn@126.com
