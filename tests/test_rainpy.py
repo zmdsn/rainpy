@@ -23,3 +23,7 @@ def test_pd_read_csv():
     all(df_utf8.fillna(0) == df_gbk.fillna(0))
     all(df_utf8_t.fillna(0) == df_utf8.fillna(0))
     all(df_utf8_t.fillna(0) == df_gbk_t.fillna(0))
+
+    # df = pd_read_csv("judge_result0913.csv", chunksize=5)
+    # for d in df:
+    #     print(d.shape)
