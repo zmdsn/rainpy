@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-def read_csv(filename: str, return_type: str = 'dict'):
+def read_csv(filename: str, return_type: str = 'dict', iterator=False):
     # type : 'list', 'dict'
     encodings = ['utf-8', 'gbk',  'utf-8-sig', 'GB2312', 'gb18030',]
     data = []
@@ -14,6 +14,8 @@ def read_csv(filename: str, return_type: str = 'dict'):
                     reader = csv.reader(f)
                 header = next(reader)
                 for row in reader:
+                    if iterator:
+                        yield row
                     data.append(row)
             return data
         except Exception as e:
