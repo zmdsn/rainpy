@@ -30,7 +30,7 @@ set_up = py_head + """
 
 from setuptools import setup, find_packages
 
-with open('README.md') as f:
+with open('README.md', encoding="utf-8") as f:
     readme = f.read()
 
 with open('LICENSE') as f:
@@ -149,7 +149,7 @@ def make_setup(args):
                                    author=args.author,
                                    email=args.email,
                                    url=args.url)
-    file_path = os.path.join(args.floder, "set_up.py")
+    file_path = os.path.join(args.floder, "setup.py")
     make_file(file_path, set_up_content)
 
 
