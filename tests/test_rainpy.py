@@ -27,3 +27,6 @@ def test_pd_read_csv():
     # df = pd_read_csv("judge_result0913.csv", chunksize=5)
     # for d in df:
     #     print(d.shape)
+
+    # df = pd_read_csv("judge_result0913.csv", iterator=True)
+    # df.get_chunk(7)
