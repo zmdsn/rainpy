@@ -1,0 +1,1 @@
+pipreqs ./ --encoding UTF8 --force --use-local --ignore .venv
