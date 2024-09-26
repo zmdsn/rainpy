@@ -35,3 +35,7 @@ def pd_read_csv(filename, **kwargs):
         except Exception as e:
             print(filename, e)
     return data
+
+def get_extension(file_path):
+    return os.path.splitext(file_path)[-1]
+
