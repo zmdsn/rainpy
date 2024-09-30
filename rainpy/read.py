@@ -34,7 +34,7 @@ def get_extension(file_path):
 def read_text(file, *args, **kwargs):
     filter_kwargs = func_paramate(open, **kwargs)
     with open(file, *args, **filter_kwargs) as f:
-        if kwargs.get('type') == "lines":
+        if kwargs.get('lines'):
             return f.readlines()
         return f.read()
 
@@ -47,6 +47,7 @@ def read_jsonl_generator(file, *args, **kwargs):
 
 def read_jsonl(file, *args, **kwargs):
     filter_kwargs = func_paramate(jsonlines.open, **kwargs)
+    del filter_kwargs['encoding']
     if kwargs.get('lines'):
         with jsonlines.open(file, *args, **filter_kwargs) as reader:
             read_list = [x for x in reader]
@@ -74,13 +75,16 @@ def get_encoding(file):
 
 def pd_read_excel(filename, **kwargs):
     encodings = ['utf-8', 'gbk',  'utf-8-sig', 'GB2312', 'gb18030',]
+    filter_kwargs = func_paramate(pd.read_excel, **kwargs)
+
     data = pd.DataFrame()
     for encoding in encodings:
         try:
             if kwargs.get("encoding"):
-                data = pd.read_excel(filename, **kwargs)
+                data = pd.read_excel(filename, **filter_kwargs)
                 return data
-            data = pd.read_excel(filename, encoding=kwargs.get("encoding", encoding), **kwargs)
+            kwargs['encoding'] = encoding
+            data = pd.read_excel(filename, **filter_kwargs)
             return data
         except Exception as e:
             print(filename, e)
