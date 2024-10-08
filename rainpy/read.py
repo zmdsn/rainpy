@@ -202,6 +202,16 @@ def save_json(file, data, mode='w', *args, **kwargs):
         json.dump(data, f, *args, **kwargs)
 
 
+def save_jsonl(file, data, mode='w', *args, **kwargs):
+    mode = kwargs.get("mode", 'w')
+    if "mode" not in kwargs:
+        mode = 'w'
+        if os.path.exists(file) and os.path.getsize(file):
+            mode = 'a'
+    with jsonlines.open(file, mode=mode) as writer:
+        writer.write(data)
+
+
 def save(file, data, *args, **kwargs):
     if not file:
         raise RuntimeError(f"No file specified\n")
@@ -214,16 +224,14 @@ def save(file, data, *args, **kwargs):
         return pd_save(file, data, *args, **kwargs)
 
     if ext == ".jsonl":
-        data = read_jsonl(file, *args, **kwargs)
-        if kwargs.get('pandas'):
-            return pd.DataFrame(data)
+        save_jsonl(file, data, *args, **kwargs)
         return
 
     if ext == ".json":
-        save_json(file, data, mode='w')
+        save_json(file, data, *args, **kwargs)
         return
 
-    save_txt(file, data, mode='w')
+    save_txt(file, data, *args, **kwargs)
     return
 
 
@@ -246,14 +254,3 @@ def test_read_text():
 def test_read():
     pass
     # read("or_example_gbk.json")
-
-
-
-def get_files(path, type="*"):
-    if r"*" in path or "?" in path:
-        return [file for file in glob.glob(path)]
-    if os.path.isdir(path):
-        return [file for file in glob.glob(os.path.join(path, "*"+type))]
-    elif os.path.isfile(path):
-        return [path]
-
