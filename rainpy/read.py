@@ -254,3 +254,13 @@ def test_read_text():
 def test_read():
     pass
     # read("or_example_gbk.json")
+
+
+def get_files(path, type="*"):
+    if r"*" in path or "?" in path:
+        return [file for file in glob.glob(path)]
+    if os.path.isdir(path):
+        return [file for file in glob.glob(os.path.join(path, "*"+type))]
+    elif os.path.isfile(path):
+        return [path]
+
