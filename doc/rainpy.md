@@ -37,3 +37,13 @@ rainpy 是一个简单的用于科研或生产的工具包, 以科研导向为�
 
 
 
+
+# example: 
+```python
+for x in get_files("dataset/xx.jsonl"):
+    dataset = read(x, pandas=1)
+    for x in dataset.to_dict('records'):
+        save("re/xx.jsonl", x, mode='a')
+        print(x['prompt'])
+```
+
