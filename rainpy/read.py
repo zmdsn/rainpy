@@ -1,11 +1,12 @@
 from email import charset
+import inspect
 import json
 import os
 import pandas as pd
 import pytest
 from types import FunctionType
 import jsonlines
-import  chardet
+import chardet
 
 
 def get_xx(xx, cx):
@@ -13,14 +14,19 @@ def get_xx(xx, cx):
     pass
 
 
-def func_paramate(
+def get_parameters(func):
+    parameters = {}
+    if isinstance(func, FunctionType):
+        parameters = inspect.signature(func).parameters
+    elif isinstance(func, str):
+        parameters = inspect.signature(eval(func)).parameters
+    return set(parameters.keys())
+
+
+def get_func_paramate(
         func_name: str | FunctionType,
         **kwarg):
-    parameter_set = set()
-    if isinstance(func_name, FunctionType):
-        parameter_set = set(func_name.__code__.co_varnames)
-    elif isinstance(func_name, str):
-        parameter_set = set(eval(f"{func_name}.__code__.co_varnames"))
+    parameter_set = get_parameters(func_name)
     if isinstance(kwarg, dict):
         keys = parameter_set & set(kwarg.keys())
         return {k: kwarg.get(k) for k in keys}
@@ -32,7 +38,7 @@ def get_extension(file_path):
 
 
 def read_text(file, *args, **kwargs):
-    filter_kwargs = func_paramate(open, **kwargs)
+    filter_kwargs = get_func_paramate(open, **kwargs)
     with open(file, *args, **filter_kwargs) as f:
         if kwargs.get('lines'):
             return f.readlines()
@@ -46,7 +52,7 @@ def read_jsonl_generator(file, *args, **kwargs):
 
 
 def read_jsonl(file, *args, **kwargs):
-    filter_kwargs = func_paramate(jsonlines.open, **kwargs)
+    filter_kwargs = get_func_paramate(jsonlines.open, **kwargs)
     del filter_kwargs['encoding']
     if kwargs.get('lines'):
         with jsonlines.open(file, *args, **filter_kwargs) as reader:
@@ -56,7 +62,7 @@ def read_jsonl(file, *args, **kwargs):
 
 
 def read_json(file, *args, **kwargs):
-    filter_kwargs = func_paramate(jsonlines.open, **kwargs)
+    filter_kwargs = get_func_paramate(jsonlines.open, **kwargs)
     with open(file, *args, **filter_kwargs) as f:
         try:
             content = json.load(f)
@@ -71,11 +77,11 @@ def get_encoding(file):
         if enc_dict.get("confidence") < 0.8 and enc_dict.get("encoding") == 'ISO-8859-1':
             return "GBK"
         return enc_dict.get("encoding", 'utf8')
-    
+
 
 def pd_read_excel(filename, **kwargs):
     encodings = ['utf-8', 'gbk',  'utf-8-sig', 'GB2312', 'gb18030',]
-    filter_kwargs = func_paramate(pd.read_excel, **kwargs)
+    filter_kwargs = get_func_paramate(pd.read_excel, **kwargs)
 
     data = pd.DataFrame()
     for encoding in encodings:
@@ -91,40 +97,147 @@ def pd_read_excel(filename, **kwargs):
     return data
 
 
+read_map = {
+    ".txt": "table",
+    ".pkl": "pickle",
+    '.xlsx': "excel",
+    '.xls': "excel",
+}
+
+write_map = {
+    ".pkl": "pickle",
+    '.xlsx': "excel",
+    '.xls': "excel",
+}
+
+pandas_first_ext = [".csv", ".xlsx", ".xls", ".hdf", ".orc",
+                    ".parquet", ".sql", ".feather",  # ".html",
+                    ".xml", ".sas", ".spss",
+                    ".pkl", ".fwf", ".stata"]
+
+
+def pd_read(file, *args, **kwargs):
+    if "encoding" not in kwargs:
+        encoding = get_encoding(file)
+        kwargs['encoding'] = encoding
+    ext = get_extension(file)
+    pd_ext = read_map.get(ext, ext.replace(r".", ""))
+    func = f"read_{pd_ext}"
+    if hasattr(pd, func):
+        try:
+            function = getattr(pd, func)
+            filter_kwargs = get_func_paramate(function, **kwargs)
+            return function(file, *args, **filter_kwargs)
+        except Exception as e:
+            raise RuntimeError from e
+
+
 def read(file, *args, **kwargs):
     ext = get_extension(file)
     if "encoding" not in kwargs:
         encoding = get_encoding(file)
         kwargs['encoding'] = encoding
-        
+
+    # Pay attention to the order
     if ext == ".jsonl":
         data = read_jsonl(file, *args, **kwargs)
         if kwargs.get('pandas'):
             return pd.DataFrame(data)
         return data
-    
+
+    if kwargs.get('pandas'):
+        return pd_read(file, *args, **kwargs)
+
+    if ext in pandas_first_ext:
+        try:
+            return pd_read(file, *args, **kwargs)
+        except:
+            return read_text(file, *args, **kwargs)
+
     if ext == ".json":
         return read_json(file, *args, **kwargs)
 
-    if ext in [".xlsx", ".xls"]:
-        return pd_read_excel(file, *args, **kwargs)
-
     data = read_text(file, *args, **kwargs)
-    if ext == ".csv":
-        return pd.DataFrame(data)
-
     return data
 
-def test_func_paramate():
-    assert func_paramate("get_xx") == {}
-    assert func_paramate("get_xx", a=3) == {}
-    assert func_paramate("get_xx", a=3, b=4) == {}
-    assert func_paramate(get_xx) == {}
-    assert func_paramate(get_xx, a=3) == {}
-    assert func_paramate(get_xx, a=3, b=4) == {}
-    assert func_paramate(get_xx, xx=3, b=4) == {"xx": 3}
-    assert func_paramate(get_xx, xx=3) == {"xx": 3}
-    assert func_paramate(get_xx, xx=3, cx=4) == {"xx": 3, "cx": 4}
+
+def pd_save(data, file, *args, **kwargs):
+    ext = get_extension(file)
+    if "index" not in kwargs:
+        kwargs['index'] = False
+    pd_ext = write_map.get(ext, ext.replace(r".", ""))
+    func = f"to_{pd_ext}"
+
+    if hasattr(data, func):
+        try:
+            if isinstance(data, pd.DataFrame):
+                function = getattr(pd.DataFrame, func)
+            elif isinstance(data, pd.Series):
+                function = getattr(pd.Series, func)
+            filter_kwargs = get_func_paramate(function, **kwargs)
+            function = getattr(data, func)
+            function(file, *args, **filter_kwargs)
+        except Exception as e:
+            raise RuntimeError from e
+    else:
+        raise RuntimeError(f"Pandas does not support the suffix : '{ext}'\n")
+
+
+def check_dirs(file):
+    dirs = os.path.dirname(file)
+    if not os.path.exists(dirs):
+        os.makedirs(dirs)
+
+
+def write(data, file, *args, **kwargs):
+    save(data, file, *args, **kwargs)
+
+
+def save_txt(data, file, mode='w'):
+    with open(file, mode) as f:
+        f.write(data)
+
+
+def save_json(data, file, mode='w', *args, **kwargs):
+    with open(file, mode) as f:
+        json.dump(data, f, *args, **kwargs)
+
+
+def save(data, file, *args, **kwargs):
+    if not file:
+        raise RuntimeError(f"No file specified\n")
+    check_dirs(file)
+    ext = get_extension(file)
+    if "encoding" not in kwargs:
+        kwargs['encoding'] = 'utf8'
+
+    if isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
+        return pd_save(data, file, *args, **kwargs)
+
+    if ext == ".jsonl":
+        data = read_jsonl(file, *args, **kwargs)
+        if kwargs.get('pandas'):
+            return pd.DataFrame(data)
+        return
+
+    if ext == ".json":
+        save_json(data, file, mode='w')
+        return
+
+    save_txt(data, file, mode='w')
+    return
+
+
+def test_get_func_paramate():
+    assert get_func_paramate("get_xx") == {}
+    assert get_func_paramate("get_xx", a=3) == {}
+    assert get_func_paramate("get_xx", a=3, b=4) == {}
+    assert get_func_paramate(get_xx) == {}
+    assert get_func_paramate(get_xx, a=3) == {}
+    assert get_func_paramate(get_xx, a=3, b=4) == {}
+    assert get_func_paramate(get_xx, xx=3, b=4) == {"xx": 3}
+    assert get_func_paramate(get_xx, xx=3) == {"xx": 3}
+    assert get_func_paramate(get_xx, xx=3, cx=4) == {"xx": 3, "cx": 4}
 
 
 def test_read_text():
