@@ -53,7 +53,6 @@ def read_jsonl_generator(file, *args, **kwargs):
 
 def read_jsonl(file, *args, **kwargs):
     filter_kwargs = get_func_paramate(jsonlines.open, **kwargs)
-    del filter_kwargs['encoding']
     if kwargs.get('lines'):
         with jsonlines.open(file, *args, **filter_kwargs) as reader:
             read_list = [x for x in reader]
@@ -161,7 +160,7 @@ def read(file, *args, **kwargs):
     return data
 
 
-def pd_save(data, file, *args, **kwargs):
+def pd_save(file, data, *args, **kwargs):
     ext = get_extension(file)
     if "index" not in kwargs:
         kwargs['index'] = False
@@ -189,21 +188,21 @@ def check_dirs(file):
         os.makedirs(dirs)
 
 
-def write(data, file, *args, **kwargs):
-    save(data, file, *args, **kwargs)
+def write(file, data, *args, **kwargs):
+    save(file, data, *args, **kwargs)
 
 
-def save_txt(data, file, mode='w'):
+def save_txt(file, data, mode='w'):
     with open(file, mode) as f:
         f.write(data)
 
 
-def save_json(data, file, mode='w', *args, **kwargs):
+def save_json(file, data, mode='w', *args, **kwargs):
     with open(file, mode) as f:
         json.dump(data, f, *args, **kwargs)
 
 
-def save(data, file, *args, **kwargs):
+def save(file, data, *args, **kwargs):
     if not file:
         raise RuntimeError(f"No file specified\n")
     check_dirs(file)
@@ -212,7 +211,7 @@ def save(data, file, *args, **kwargs):
         kwargs['encoding'] = 'utf8'
 
     if isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
-        return pd_save(data, file, *args, **kwargs)
+        return pd_save(file, data, *args, **kwargs)
 
     if ext == ".jsonl":
         data = read_jsonl(file, *args, **kwargs)
@@ -221,10 +220,10 @@ def save(data, file, *args, **kwargs):
         return
 
     if ext == ".json":
-        save_json(data, file, mode='w')
+        save_json(file, data, mode='w')
         return
 
-    save_txt(data, file, mode='w')
+    save_txt(file, data, mode='w')
     return
 
 
@@ -247,3 +246,14 @@ def test_read_text():
 def test_read():
     pass
     # read("or_example_gbk.json")
+
+
+
+def get_files(path, type="*"):
+    if r"*" in path or "?" in path:
+        return [file for file in glob.glob(path)]
+    if os.path.isdir(path):
+        return [file for file in glob.glob(os.path.join(path, "*"+type))]
+    elif os.path.isfile(path):
+        return [path]
+
