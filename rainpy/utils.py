@@ -70,4 +70,17 @@ sys.getsizeof(dfe)
 
 
 
+def calculate_tax(income, deduction=60000, additional_deduction=0):
+    tax_rates = [(0, 0.03, 0), (36000, 0.1, 2520), (144000, 0.2, 16920), (300000, 0.25, 31920), (420000, 0.3, 52920), (660000, 0.35, 85920), (960000 , 0.45, 181920)]
+    tax_rates.reverse()
+    taxable_income = max(income - deduction - additional_deduction, 0)
+    tax = 0
+    for threshold, rate, des in tax_rates:
+        if taxable_income >= threshold:
+            tax = taxable_income * rate - des
+            break
+    return tax
+
+
+
 
