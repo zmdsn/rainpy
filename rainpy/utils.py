@@ -82,5 +82,15 @@ def calculate_tax(income, deduction=60000, additional_deduction=0):
     return tax
 
 
+def set_launch_env():
+    path = ".vscode/launch.json"
+    import json
+    import os
+    with open(path, 'r') as json_file:
+        json_data = json.load(json_file)
+    json_data
 
-
+    env_variables = json_data.get('configurations', [{}])[0].get('env', {})
+    for var_name, var_value in env_variables.items():
+        os.environ[var_name] = os.environ.get(var_name, var_value)
+    return env_variables
