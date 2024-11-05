@@ -57,7 +57,7 @@ jobs:
     # 上传到 PPyPIypi
     name: >-
       Publish Python 🐍 distribution 📦 to PyPI      
-    if: startsWith(github.ref, 'refs/tags/') # 只在推送tag时，才发布到 PyPI
+    if: startsWith(github.ref, 'refs/tags/') 
     needs:
       - build
     runs-on: ubuntu-latest
