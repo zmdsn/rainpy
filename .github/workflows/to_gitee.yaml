@@ -1,0 +1,19 @@
+name: To gitee
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  mypy:
+    runs-on: ${{ matrix.os_python[0] }}
+    steps:
+    - name: Mirror the Github organization repos to Gitee.
+      uses: Yikun/hub-mirror-action@master
+      with:
+        src: github/zmdsn
+        dst: gitee/zmdsn
+        dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+        dst_token: ${{ secrets.GITEE_TOKEN }}
+        account_type: org
