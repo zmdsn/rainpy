@@ -12,7 +12,7 @@ with open('LICENSE') as f:
 
 setup(
     name='rainpy',
-    version='0.12.3',
+    version='v0.12.2',
     description='Work tools',
     long_description=readme,
     author='zmdsn',
