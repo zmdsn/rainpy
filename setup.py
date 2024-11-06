@@ -12,7 +12,7 @@ with open('LICENSE') as f:
 
 setup(
     name='rainpy',
-    version='v0.12.55',
+    version='v0.12.56',
     description='Work tools',
     long_description=readme,
     long_description_content_type='text/markdown',
@@ -20,5 +20,10 @@ setup(
     author_email='zmdsn@126.com',
     url='',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs')),
+    entry_points={
+        'console_scripts': [
+            'rainpy = rainpy:main'
+        ]
+    }
 )
