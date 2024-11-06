@@ -6,11 +6,10 @@ import datetime
 from .raindrop import *
 
 def main():
-    print("Hello, world!")
     parser = argparse.ArgumentParser(description='argparse testing')
     parser.add_argument('--name', '-n', type=str, default="raindrop",
                         required=True, help="Your python package name")
-    parser.add_argument('--floder', '-f', type=str, default="./raindrop",
+    parser.add_argument('--floder', '-f', type=str, default="",
                         required=True, help='The folder you want to put in')
     parser.add_argument('--author', '-a', type=str,
                         required=True, default="zmdsn", help='your name')
