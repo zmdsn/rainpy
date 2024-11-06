@@ -4,5 +4,6 @@ rain_cache = Cache('./.cache')
 
 
 from .read import read
+from .save import save, write
 
-__all__ = ["read", "write", "save"]
+__all__ = ["read", "save", "write"]
