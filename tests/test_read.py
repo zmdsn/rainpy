@@ -1,7 +1,7 @@
 import pytest
 from rainpy import read
 
-def test_read_csv():
+def test_read():
     data = read("tests/test_data/test_one.json")
     assert data.get("age") == 25
 
