@@ -9,10 +9,6 @@ import jsonlines
 import chardet
 
 
-def get_xx(xx, cx):
-    print(xx, cx)
-    pass
-
 
 def get_parameters(func):
     parameters = {}

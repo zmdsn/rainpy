@@ -1,3 +1,5 @@
-[{"name": "Alice", "age": 25, "city": "New York"},
-{"name": "Bob", "age": 30, "city": "Los Angeles"},
-{"name": "Charlie", "age": 35, "city": "Chicago"}]
+[
+  { "name": "Alice中文", "age": 25, "city": "New York" },
+  { "name": "Bob", "age": 30, "city": "Los Angeles" },
+  { "name": "Charlie", "age": 35, "city": "Chicago" }
+]
