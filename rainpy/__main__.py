@@ -14,7 +14,8 @@ def main():
     parser.add_argument('--author', '-a', type=str,
                         required=True, default="zmdsn", help='your name')
     parser.add_argument('--email', '-e', type=str,
-                        required=True, default="zmdsn@126.com",  help='your email')
+                        required=True, default="zmdsn@126.com",  
+                        help='your email')
     parser.add_argument('--url', '-u', type=str,
                         default="", help='the url in git')
     parser.add_argument('--web', '-w', type=str,
