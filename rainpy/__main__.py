@@ -5,7 +5,8 @@ import os
 import datetime
 from .raindrop import *
 
-if __name__ == "__main__":
+def main():
+    print("Hello, world!")
     parser = argparse.ArgumentParser(description='argparse testing')
     parser.add_argument('--name', '-n', type=str, default="raindrop",
                         required=True, help="Your python package name")
@@ -22,3 +23,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     make_frame(args)
 
+if __name__ == "__main__":
+    main()
