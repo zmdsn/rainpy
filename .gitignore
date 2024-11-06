@@ -5,3 +5,4 @@ dist/
 rainpy.egg-info/
 doc/PyPI-Recovery-Codes-zmdsn-2024-09-19T11_22_14.471914.txt
 lab.ipynb
+.cache/

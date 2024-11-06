@@ -48,12 +48,16 @@ def read_jsonl_generator(file, *args, **kwargs):
 
 
 def read_jsonl(file, *args, **kwargs):
-    filter_kwargs = get_func_paramate(jsonlines.open, **kwargs)
-    if kwargs.get('lines'):
+    use_pandas = kwargs.get("pandas", True)
+    if not use_pandas:
+        filter_kwargs = get_func_paramate(jsonlines.open, **kwargs)
+        if kwargs.get('lines'):
+            return read_jsonl_generator(file, *args, **filter_kwargs)
         with jsonlines.open(file, *args, **filter_kwargs) as reader:
             read_list = [x for x in reader]
             return read_list
-    return read_jsonl_generator(file, *args, **filter_kwargs)
+    else:
+        return pd.read_json(file, lines=True)
 
 
 def read_json(file, *args, **kwargs):
@@ -99,11 +103,6 @@ read_map = {
     '.xls': "excel",
 }
 
-write_map = {
-    ".pkl": "pickle",
-    '.xlsx': "excel",
-    '.xls': "excel",
-}
 
 pandas_first_ext = [".csv", ".xlsx", ".xls", ".hdf", ".orc",
                     ".parquet", ".sql", ".feather",  # ".html",

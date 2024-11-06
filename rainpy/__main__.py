@@ -4,29 +4,28 @@ import argparse
 import os
 import datetime
 from .raindrop import make_frame
-from .run_func import run_func
+from .run import run_func
 
 def main():
     parser = argparse.ArgumentParser(description='argparse testing')
-    parser.add_argument('--name', '-n', type=str, default="raindrop",
+    parser.add_argument('-n', '--name', type=str, default="raindrop",
                         required=True, help="Your python package name")
-    parser.add_argument('--floder', '-f', type=str, default="",
+    parser.add_argument('-f', '--floder', type=str, default="",
                         required=True, help='The folder you want to put in')
-    parser.add_argument('--author', '-a', type=str,
+    parser.add_argument('-a', '--author', type=str,
                         required=True, default="zmdsn", help='your name')
-    parser.add_argument('--email', '-e', type=str,
+    parser.add_argument('-e', '--email', type=str,
                         required=True, default="zmdsn@126.com",  
                         help='your email')
-    parser.add_argument('--url', '-u', type=str,
+    parser.add_argument('-u', '--url', type=str,
                         default="", help='the url in git')
-    parser.add_argument('--web', '-w', type=str,
+    parser.add_argument('-w', '--web', type=str,
                         default="", help='falsk or faskapi')
     # for run func
-    parser.add_argument('--run', '-r', type=str,
-                        default="", help='The func to run')
-    parser.add_argument('--file', '-f', type=str,
+    parser.add_argument('-r', '--run', type=str, nargs='*', default="", help='The func to run')
+    parser.add_argument('-fi', '--file', type=str,
                         default="", help='The origin file')
-    parser.add_argument('--save', '-s', type=str,
+    parser.add_argument('-s', '--save', type=str,
                         default="", help='The file or folder to save')
 
     args = parser.parse_args()

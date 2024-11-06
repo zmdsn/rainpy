@@ -1,3 +1,16 @@
+import json
+import os
+import jsonlines
+import pandas as pd
+
+from .read import get_extension, get_func_paramate
+
+write_map = {
+    ".pkl": "pickle",
+    '.xlsx': "excel",
+    '.xls': "excel",
+}
+
 def pd_save(file, data, *args, **kwargs):
     ext = get_extension(file)
     if "index" not in kwargs:
