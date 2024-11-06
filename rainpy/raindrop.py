@@ -244,6 +244,9 @@ def make_files(folder, sub_forlders, file_lists, content=""):
 
 def make_frame(args):
     folder = args.floder
+    if not folder:
+        name = args.name
+        folder = f"{name}_lib"
     make_foleder(folder)
     make_folders(folder, "", [".venv", "doc", "tests", args.name])
     make_license(args)
