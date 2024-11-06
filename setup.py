@@ -18,7 +18,7 @@ setup(
     long_description_content_type='text/markdown',
     author='zmdsn',
     author_email='zmdsn@126.com',
-    url='',
+    url='https://github.com/zmdsn/rainpy',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
     entry_points={
