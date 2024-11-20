@@ -1,3 +1,10 @@
+<h1 align="center">
+<img src="https://raw.githubusercontent.com/zmdsn/zmdsn.github.io/refs/heads/main/assets/images/icon.png" width="300">
+</h1><br>
+
+![](https://img.shields.io/badge/rainpy-base-blue?logo=N&labelColor=white)
+![](https://img.shields.io/badge/License-BSD-blue?logo=N&labelColor=white)
+
 # rainpy
 
 For the Scientific Research to test problems.
