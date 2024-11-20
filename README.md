@@ -1,5 +1,5 @@
 <h1 align="center">
-<img src="https://raw.githubusercontent.com/zmdsn/zmdsn.github.io/refs/heads/main/assets/images/icon.png" width="300">
+<img src="https://raw.githubusercontent.com/zmdsn/rainpy/refs/heads/main/doc/rainpylogo.jpg" width="300">
 </h1><br>
 
 ![](https://img.shields.io/badge/rainpy-base-blue?logo=N&labelColor=white)
