@@ -1,7 +1,47 @@
 [project]
 name = "rainpy"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.13.0"
+description = ""
+authors = [{name = "zmdsn", email = "zmdsn@126.com"}]
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.9"
+dependencies = [
+    "chardet>=5.2.0",
+    "darts>=0.37.1",
+    "diskcache>=5.6.3",
+    "jsonlines>=4.0.0",
+    "pandas>=2.3.3",
+    "pytest>=8.4.2",
+]
+license = {text = "BSD-3-Clause"}
+
+[project.optional-dependencies]
+all = [
+
+]
+ts = [
+
+]
+dev = [
+    "pytest"
+]
+
+
+[build-system]
+requires = [
+    "uv_build>=0.7.6,<0.8.0"
+]
+build-backend = "uv_build"
+
+
+[tool.pytest.ini_options]
+addopts = [
+    "-v",                  # 详细输出
+    "--disable-warnings",  # 禁用警告（正确写法）
+    "--tb=auto",           # 自动选择回溯长度
+    "--strict-markers",    # 严格标记
+    "-x",                  # 遇到第一个失败就停止
+    "--maxfail=3",         # 最多失败3个就停止
+    # "--no-header",       # 不显示头部信息
+    # "--no-summary",      # 不显示总结
+]

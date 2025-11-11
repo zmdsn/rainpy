@@ -3,6 +3,8 @@ from rainpy.raindrop import make_frame
 
 from collections import namedtuple
 
+from rainpy.utils import pd_read_csv
+
 def test_raindrop():
     drops = {"name": "example", 
                 "floder": "./example", 

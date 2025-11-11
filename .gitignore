@@ -20,3 +20,4 @@ wheels/
 .github/
 uv.lock
 .python-version
+.env

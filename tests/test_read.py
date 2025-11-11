@@ -27,7 +27,18 @@ def test_read_json():
     assert data['age'][0] == 25
 
 
+def test_read_csv():
+    data = read("tests/test_data/csv_utf8_t.csv")
+    assert len(data) == 5
+    assert data['b'][2] == 6
 
+    data = read("tests/test_data/csv_gbk.csv")
+    assert data.shape[0] == 5
+    assert data['xxx'][3] == '汉字'
+
+    data = read("tests/test_data/csv_gbk_t.csv")
+    assert data.shape[0] == 5
+    assert data['xxx'][3] == '汉字'
 
 
 

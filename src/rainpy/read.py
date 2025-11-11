@@ -119,12 +119,13 @@ def pd_read(file, *args, **kwargs):
     func = f"read_{pd_ext}"
     if hasattr(pd, func):
         try:
+            if pd_ext == "csv" and "sep" not in kwargs:
+                kwargs["sep"] = None
             function = getattr(pd, func)
             filter_kwargs = get_func_paramate(function, **kwargs)
             return function(file, *args, **filter_kwargs)
         except Exception as e:
             raise RuntimeError from e
-
 
 def read(file, *args, **kwargs):
     ext = get_extension(file)
