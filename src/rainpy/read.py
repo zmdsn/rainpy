@@ -110,6 +110,36 @@ pandas_first_ext = [".csv", ".xlsx", ".xls", ".hdf", ".orc",
                     ".pkl", ".fwf", ".stata"]
 
 
+def _detect_delimiter(file_path, encoding=None, sample_lines=5):
+    """
+    自动检测文件的分隔符
+    返回：',' '\t' ' ' 或 'unknown'
+    """
+    try:
+        with open(file_path, 'r', encoding=encoding) as f:
+            lines = [f.readline().strip() for _ in range(sample_lines) if f.readline()]
+        if not lines:
+            return ' '  # 默认返回空格
+        # 统计各种分隔符的出现频率
+        delimiter_counts = {
+            ',': 0,
+            '\t': 0,
+            ' ': 0,
+            ';': 0
+        }
+        for line in lines:
+            if line:  # 跳过空行
+                for delim in delimiter_counts:
+                    delimiter_counts[delim] += line.count(delim)
+        # 返回出现最多的分隔符
+        most_common = max(delimiter_counts.items(), key=lambda x: x[1])
+        # 如果最常见的分隔符出现次数为0，可能是固定宽度文件
+        if most_common[1] == 0:
+            return None  # 默认使用空格分隔
+        return most_common[0]
+    except Exception:
+        return None  # 发生错误时返回默认值
+    
 def pd_read(file, *args, **kwargs):
     if "encoding" not in kwargs:
         encoding = get_encoding(file)
@@ -120,7 +150,13 @@ def pd_read(file, *args, **kwargs):
     if hasattr(pd, func):
         try:
             if pd_ext == "csv" and "sep" not in kwargs:
-                kwargs["sep"] = None
+                kwargs["sep"] = _detect_delimiter(file, kwargs.get('encoding'))
+                kwargs["engine"] = "c"
+                if not kwargs["sep"]:
+                    kwargs["engine"] = "python"
+            elif pd_ext in ['tsv', 'tab']:
+                kwargs["sep"] = "\t"
+                kwargs["engine"] = "c"
             function = getattr(pd, func)
             filter_kwargs = get_func_paramate(function, **kwargs)
             return function(file, *args, **filter_kwargs)

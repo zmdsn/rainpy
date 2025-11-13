@@ -7,10 +7,10 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "chardet>=5.2.0",
-    "darts>=0.37.1",
     "diskcache>=5.6.3",
     "jsonlines>=4.0.0",
     "pandas>=2.3.3",
+    "pyod>=2.0.5",
     "pytest>=8.4.2",
 ]
 license = {text = "BSD-3-Clause"}
