@@ -12,8 +12,11 @@ from sklearn.neighbors import LocalOutlierFactor
 import numpy as np
 import pandas as pd
 from scipy import stats
-
+from .utils import get_defined_functions
 from rainpy import read
+
+from .utils import get_defined_functions
+
 
 
 def quick_timestamp_check(value):
@@ -129,7 +132,8 @@ def set_datetime_index(df, datetime_col=None):
 
 def read_data(file_path):
     df = read(file_path)
-    df = set_datetime_index(df)
+    if not df.empty:
+        df = set_datetime_index(df)
     return df
 
 
@@ -772,6 +776,9 @@ def seasonal_missing_fill(ts_data, seasonal_period=24):
     else:
         return ts_data.interpolate(method='linear')
 
+
+# 自动设置 __all__
+__all__ = get_defined_functions()
 
 if __name__ == "__main__":
     # 示例用法
