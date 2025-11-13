@@ -1,3 +1,4 @@
+from scipy import optimize
 from scipy.stats import norm, shapiro, anderson, kstest
 from scipy.stats import shapiro
 from scipy.stats import multivariate_normal
@@ -499,13 +500,16 @@ def check_gaussian_assumption(data, alpha=0.05, show=False):
     result = {}
     if isinstance(data, pd.DataFrame):
         for col in data.columns:
-            report, image = _check_series_gaussian_assumption(data[col], alpha=alpha, show=show)
+            report, image = _check_series_gaussian_assumption(
+                data[col], alpha=alpha, show=show)
             result[col] = report['is_normal']
     elif isinstance(data, pd.Series):
         col = data.name
-        report, image = _check_series_gaussian_assumption(data, alpha=alpha, show=show)
+        report, image = _check_series_gaussian_assumption(
+            data, alpha=alpha, show=show)
         result[col] = report['is_normal']
     return result, image
+
 
 def _check_series_gaussian_assumption(series, alpha=0.05, show=False):
     """
@@ -578,6 +582,7 @@ def _check_series_gaussian_assumption(series, alpha=0.05, show=False):
         image_base64 = _plot_normality_check(data, data.name, result)
     return result, image_base64
 
+
 def _plot_normality_check(data, col_name, result, figsize=(15, 4)):
     """Plot normality test charts"""
     plt.figure(figsize=(12, 8))
@@ -630,6 +635,7 @@ Confidence: {result['normal_confidence']}"""
     image_base64 = base64.b64encode(img.read()).decode('utf-8')
     return image_base64
 
+
 def print_summary_report(results_df, alpha):
     """生成总结报告字符串"""
     report_lines = []
@@ -651,8 +657,10 @@ def print_summary_report(results_df, alpha):
         report_lines.append(f"\n 不符合正态分布的列: {non_normal_cols}")
 
     report_lines.append(f"\n 统计量范围:")
-    report_lines.append(f"偏度范围: [{results_df['skewness'].min():.3f}, {results_df['skewness'].max():.3f}]")
-    report_lines.append(f"峰度范围: [{results_df['kurtosis'].min():.3f}, {results_df['kurtosis'].max():.3f}]")
+    report_lines.append(
+        f"偏度范围: [{results_df['skewness'].min():.3f}, {results_df['skewness'].max():.3f}]")
+    report_lines.append(
+        f"峰度范围: [{results_df['kurtosis'].min():.3f}, {results_df['kurtosis'].max():.3f}]")
 
     # 正态性建议
     report_lines.append(f"\n 建议:")
@@ -671,14 +679,98 @@ def remove_duplicates(ts_data):
     """处理重复的时间戳"""
     # 方法1: 删除完全重复的行
     ts_cleaned = ts_data.drop_duplicates()
-    
     # 方法2: 基于时间戳去重，保留最后一个
     ts_cleaned = ts_data[~ts_data.index.duplicated(keep='last')]
-    
     # 方法3: 对重复时间戳的值进行聚合
     ts_cleaned = ts_data.groupby(ts_data.index).mean()
-    
     return ts_cleaned
+
+
+def analyze_missing_data(ts_data):
+    """分析缺失数据模式"""
+    missing_info = {
+        'total_missing': ts_data.isnull().sum().sum(),
+        'missing_ratio': ts_data.isnull().sum().sum() / len(ts_data),
+        'missing_pattern': ts_data.isnull().astype(int).diff().fillna(0),
+        'consecutive_missing': analyze_consecutive_missing(ts_data)
+    }
+    return missing_info
+
+
+def analyze_consecutive_missing(ts_data):
+    """分析连续缺失的模式"""
+    missing_streaks = []
+    current_streak = 0
+    for is_missing in ts_data.isnull():
+        if is_missing:
+            current_streak += 1
+        elif current_streak > 0:
+            missing_streaks.append(current_streak)
+            current_streak = 0
+    return pd.Series(missing_streaks).describe()
+
+
+def handle_missing_values(ts_data, method='interpolate', **kwargs):
+    """处理缺失值的多种方法"""
+    if method == 'interpolate':
+        # 线性插值
+        filled_data = ts_data.interpolate(
+            method='linear',
+            limit_direction='both',
+            **kwargs
+        )
+    elif method == 'time_aware_interpolate':
+        # 考虑时间特征的插值
+        filled_data = ts_data.interpolate(
+            method='time',
+            **kwargs
+        )
+    elif method == 'seasonal_fill':
+        # 基于季节性模式填充
+        filled_data = seasonal_missing_fill(ts_data, **kwargs)
+    elif method == 'forward_fill':
+        # 前向填充
+        filled_data = ts_data.ffill(limit=kwargs.get('limit', None))
+    elif method == 'backward_fill':
+        # 后向填充
+        filled_data = ts_data.bfill(limit=kwargs.get('limit', None))
+    elif method == 'model_based':
+        # 基于模型预测填充
+        filled_data = model_based_imputation(ts_data, **kwargs)
+    else:
+        raise ValueError(f"不支持的填充方法: {method}")
+    return filled_data
+
+
+def seasonal_missing_fill(ts_data, seasonal_period=24):
+    """基于季节性模式的缺失值填充"""
+
+    def seasonal_pattern(x, *params):
+        # 简单的季节性模式函数
+        trend, season_amp, phase = params
+        t = np.arange(len(x))
+        return trend * t + season_amp * np.sin(2 * np.pi * t / seasonal_period + phase)
+    # 对非缺失值拟合季节性模式
+    non_missing = ts_data.dropna()
+    if len(non_missing) > 10:
+        try:
+            initial_guess = [0.1, 1.0, 0]
+            params, _ = optimize.curve_fit(
+                seasonal_pattern,
+                range(len(non_missing)),
+                non_missing.values,
+                p0=initial_guess
+            )
+            # 使用拟合的模式填充缺失值
+            all_indices = range(len(ts_data))
+            filled_values = seasonal_pattern(all_indices, *params)
+            ts_data_filled = ts_data.copy()
+            ts_data_filled[ts_data.isnull()] = filled_values[ts_data.isnull()]
+            return ts_data_filled
+        except:
+            return ts_data.interpolate(method='linear')
+    else:
+        return ts_data.interpolate(method='linear')
 
 
 if __name__ == "__main__":

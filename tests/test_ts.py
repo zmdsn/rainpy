@@ -112,3 +112,10 @@ def test_check_gaussian_assumption(sample_df):
     result, image_base64 = check_gaussian_assumption(df_sel)
     assert result['OT'] == True
     assert result['HULL'] == True
+
+def test_analyze_missing_data(df_discontinuous):
+    analysis = analyze_missing_data(df_discontinuous)
+    assert 'total_missing' in analysis
+    assert 'missing_ratio' in analysis
+    assert 'missing_pattern' in analysis
+    assert 'consecutive_missing' in analysis
