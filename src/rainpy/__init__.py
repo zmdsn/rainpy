@@ -1,5 +1,5 @@
 # from diskcache import Cache
-import pandas as pd
+# import pandas as pd
 # rain_cache = Cache('./.cache')
 
 
@@ -23,7 +23,6 @@ def get_imported_names(ignore_list=None):
         and name not in ignore_list
         and name not in ['get_imported_names']  # 排除这个函数本身
     ]
-    print(public_names)
     return public_names
 
 base_all = ["read", "save", "write"]

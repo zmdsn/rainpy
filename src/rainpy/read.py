@@ -1,3 +1,5 @@
+from io import StringIO
+import re
 from email import charset
 import inspect
 import json
@@ -117,7 +119,8 @@ def _detect_delimiter(file_path, encoding=None, sample_lines=5):
     """
     try:
         with open(file_path, 'r', encoding=encoding) as f:
-            lines = [f.readline().strip() for _ in range(sample_lines) if f.readline()]
+            lines = [f.readline().strip()
+                     for _ in range(sample_lines) if f.readline()]
         if not lines:
             return ' '  # 默认返回空格
         # 统计各种分隔符的出现频率
@@ -139,7 +142,8 @@ def _detect_delimiter(file_path, encoding=None, sample_lines=5):
         return most_common[0]
     except Exception:
         return None  # 发生错误时返回默认值
-    
+
+
 def pd_read(file, *args, **kwargs):
     if "encoding" not in kwargs:
         encoding = get_encoding(file)
@@ -163,7 +167,24 @@ def pd_read(file, *args, **kwargs):
         except Exception as e:
             raise RuntimeError from e
 
+
 def read(file, *args, **kwargs):
+    try:
+        return read_file(file, *args, **kwargs)
+    except FileNotFoundError:
+        return read_string(file, *args, **kwargs)
+
+
+def read_string(md_string, *args, **kwargs):
+    is_markdown_table = analyze_markdown_table_structure(md_string)
+    if is_markdown_table:
+        return read_markdown(md_string, *args, **kwargs)
+    else:
+        from io import StringIO
+        return pd.read_csv(StringIO(md_string), *args, **kwargs)
+
+
+def read_file(file, *args, **kwargs):
     ext = get_extension(file)
     if "encoding" not in kwargs:
         encoding = get_encoding(file)
@@ -190,8 +211,6 @@ def read(file, *args, **kwargs):
 
     data = read_text(file, *args, **kwargs)
     return data
-
-
 
 
 def test_get_func_paramate():
@@ -222,5 +241,127 @@ def get_files(path, type="*"):
         return [file for file in glob.glob(os.path.join(path, "*"+type))]
     elif os.path.isfile(path):
         return [path]
+
+
+def is_table_data_row(line):
+    """判断是否为表格数据行"""
+    if '|' in line:
+        # 管道格式的表格行
+        cells = [cell.strip()
+                 for cell in line.strip('|').split('|') if cell.strip()]
+        return len(cells) >= 2
+    else:
+        # 无管道格式的表格行（至少包含两个单词）
+        words = line.split()
+        return len(words) >= 2
+
+
+def is_table_separator(line):
+    """判断是否为表格分隔行"""
+    line_clean = line.replace(' ', '')
+    # 匹配 |---|, |:---|, |:---:|, |---:| 等格式
+    separator_pattern = r'^\|?(\s*:?-+:?\s*\|?)+$'
+    return re.match(separator_pattern, line_clean) is not None
+
+
+def analyze_markdown_table_structure(text):
+    """
+    详细分析字符串的 Markdown 表格结构特征
+    """
+    lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
+    if len(lines) < 2:
+        return {"is_table": False, "reason": "行数不足"}
+    features = {
+        "has_pipes": False,
+        "has_separator": False,
+        "consistent_columns": False,
+        "has_header": False,
+        "has_data": False
+    }
+    # 检查是否使用管道符
+    pipe_lines = [line for line in lines if '|' in line]
+    features["has_pipes"] = len(pipe_lines) > 0
+    # 检查分隔行
+    for i, line in enumerate(lines):
+        if is_table_separator(line):
+            features["has_separator"] = True
+            # 分隔行应该在表头之后
+            if i == 1 and len(lines) > 2:
+                features["has_header"] = True
+    # 检查列数一致性
+    if features["has_pipes"]:
+        column_counts = []
+        for line in pipe_lines:
+            if not is_table_separator(line):
+                cells = [cell for cell in line.strip(
+                    '|').split('|') if cell.strip()]
+                column_counts.append(len(cells))
+        if column_counts:
+            features["consistent_columns"] = len(set(column_counts)) == 1
+    # 检查是否有数据行
+    data_lines = [line for line in lines if is_table_data_row(
+        line) and not is_table_separator(line)]
+    features["has_data"] = len(data_lines) >= 1
+    # 综合判断
+    score = sum(features.values())
+    is_table = score >= 3  # 至少满足3个特征
+    return is_table
+
+
+def read_markdown(md_string, dtype_conversion=True):
+    """
+    将 Markdown 表格字符串转换为 pandas DataFrame
+    参数:
+    md_string: Markdown 表格字符串
+    dtype_conversion: 是否尝试自动转换数据类型
+    返回:
+    pandas DataFrame
+    """
+    # 清理输入字符串
+    md_string = md_string.strip()
+    # 分割行
+    lines = md_string.split('\n')
+    # 识别表头和分隔行
+    header_line = None
+    data_lines = []
+    for i, line in enumerate(lines):
+        line = line.strip()
+        if not line:
+            continue
+        # 检查是否为分隔行（包含 --- 或 :-- 等）
+        if re.match(r'^\|?(\s*:?-+:?\s*\|?)+$', line.replace(' ', '')):
+            continue
+        # 第一行非空行作为表头
+        if header_line is None:
+            header_line = line
+        else:
+            data_lines.append(line)
+    if header_line is None:
+        raise ValueError("未找到有效的表头")
+    # 处理表头
+    headers = [h.strip() for h in header_line.strip('|').split('|')]
+    # 处理数据行
+    data = []
+    for line in data_lines:
+        cells = [cell.strip() for cell in line.strip('|').split('|')]
+        if len(cells) == len(headers):
+            data.append(cells)
+    # 创建 DataFrame
+    df = pd.DataFrame(data, columns=headers)
+    # 尝试自动转换数据类型
+    if dtype_conversion:
+        for col in df.columns:
+            # 尝试转换为数值
+            try:
+                df[col] = pd.to_numeric(df[col])
+            except (ValueError, TypeError):
+                # 尝试转换为日期
+                try:
+                    df[col] = pd.to_datetime(df[col])
+                except (ValueError, TypeError):
+                    # 保持为字符串
+                    pass
+    return df
+
 
 __all__ = get_defined_functions()
