@@ -45,3 +45,7 @@ addopts = [
     # "--no-header",       # 不显示头部信息
     # "--no-summary",      # 不显示总结
 ]
+
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
