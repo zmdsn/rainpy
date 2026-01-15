@@ -738,9 +738,9 @@ def handle_missing_values(ts_data, method='interpolate', **kwargs):
     elif method == 'backward_fill':
         # 后向填充
         filled_data = ts_data.bfill(limit=kwargs.get('limit', None))
-    elif method == 'model_based':
-        # 基于模型预测填充
-        filled_data = model_based_imputation(ts_data, **kwargs)
+    # elif method == 'model_based':
+    #     # 基于模型预测填充
+    #     filled_data = model_based_imputation(ts_data, **kwargs)
     else:
         raise ValueError(f"不支持的填充方法: {method}")
     return filled_data

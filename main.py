@@ -18,3 +18,6 @@ plt.show()
 # %%
 import rainpy as rp
 dir(rp)
+
+
+# %%

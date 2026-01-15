@@ -36,3 +36,9 @@ or
 > def func(data):
 >     data['base'] = "rainpy base"
 >     return data
+
+
+# log
+> uv add rainpy[log]
+
+set_logger(name="app")

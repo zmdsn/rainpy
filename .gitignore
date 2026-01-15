@@ -21,3 +21,4 @@ wheels/
 uv.lock
 .python-version
 .env
+lab.ipynb

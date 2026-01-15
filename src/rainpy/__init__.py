@@ -3,9 +3,13 @@
 # rain_cache = Cache('./.cache')
 
 
-from .read import read
-from .save import save, write
-from .ts import *
+from .logger import *
+
+pandas, _ = optional_import("pandas")
+if pandas:
+    from .ts import *
+    from .read import read
+    from .save import save, write
 
 
 def get_imported_names(ignore_list=None):
@@ -25,6 +29,9 @@ def get_imported_names(ignore_list=None):
     ]
     return public_names
 
-base_all = ["read", "save", "write"]
+base_all = []
 imported_names = get_imported_names(ignore_list=base_all)
 __all__ = base_all + imported_names
+
+
+
